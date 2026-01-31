@@ -1,31 +1,33 @@
-const config = require('../config');
+const { smsg } = require('../lib') // Flash-MD helper
 
 module.exports = {
-    name: "birdreport",
+    name: "birdhit",
     alias: ["bh", "report"],
+    desc: "Karachi Airport Bird Hit Report Generator",
     category: "aviation",
-    async run(client, message, { text }) {
-        if (!text) return message.reply("Format: .birdreport At time... Information received...");
+    async run(client, m, { text }) {
+        if (!text) return m.reply("Please provide bird hit data.");
 
-        // Bot ke andar maujood Gemini ka use karna
+        // AI Instruction for Karachi Airport format
         const prompt = `You are a professional Aviation Safety Officer at Karachi Airport. 
-        Please convert the following raw data into a clean, professional Bird Hit Report. 
-        Raw Data: ${text}
-        Use bold headings, professional language, and aviation emojis (✈️, ⚠️, 🛠️). 
-        Make it look like an official alert.`;
+        Transform this data into a professional report:
+        ${text}
+        Use bold headings and aviation emojis.`;
 
         try {
-            // Flash-MD ka default Gemini function call karein
+            // Aapke bot mein Gemini built-in hai
             const response = await client.gemini(prompt); 
             
-            // Ye result aapke number par reply ho jayega
-            await message.reply(`📢 *OFFICIAL BIRD HIT REPORT* 📢\n\n${response}`);
-            
-            // Agar aap ise Telegram channel par bhi bhejna chahte hain
-            // toh yahan wahi Telegram wali logic bhi add ho sakti hai.
-        } catch (error) {
-            message.reply("Gemini AI busy hai ya key ka masla hai. Dobara koshish karein.");
+            // Professional Report WhatsApp par bhejna
+            await m.reply(`📢 *OFFICIAL BIRD HIT REPORT* 📢\n\n${response}`);
+
+            // Telegram Channel par Auto-Post
+            const telegramChannelId = "-1003868392581"; 
+            await client.sendMessage(telegramChannelId, { text: response });
+
+        } catch (err) {
+            m.reply("AI Error. Please check your Gemini API Key in .env file.");
         }
     }
-};
+}
 
