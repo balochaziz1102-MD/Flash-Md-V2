@@ -1,33 +1,25 @@
-const { smsg } = require('../lib') // Flash-MD helper
+const { cmd } = require('../lib')
 
-module.exports = {
-    name: "birdhit",
+cmd({
+    pattern: "birdhit",
     alias: ["bh", "report"],
-    desc: "Karachi Airport Bird Hit Report Generator",
     category: "aviation",
-    async run(client, m, { text }) {
-        if (!text) return m.reply("Please provide bird hit data.");
-
-        // AI Instruction for Karachi Airport format
+    filename: __filename
+},
+async(conn, mek, m, { from, args, q, reply }) => {
+    try {
+        if (!q) return reply("Sir, please provide the bird hit data.");
+        
         const prompt = `You are a professional Aviation Safety Officer at Karachi Airport. 
-        Transform this data into a professional report:
-        ${text}
-        Use bold headings and aviation emojis.`;
+        Transform this raw data into a professional report: ${q}`;
+        
+        // Flash-MD v2 ka default Gemini call
+        const response = await conn.gemini(prompt); 
+        await reply(`📢 *OFFICIAL BIRD HIT REPORT* 📢\n\n${response}`);
 
-        try {
-            // Aapke bot mein Gemini built-in hai
-            const response = await client.gemini(prompt); 
-            
-            // Professional Report WhatsApp par bhejna
-            await m.reply(`📢 *OFFICIAL BIRD HIT REPORT* 📢\n\n${response}`);
-
-            // Telegram Channel par Auto-Post
-            const telegramChannelId = "-1003868392581"; 
-            await client.sendMessage(telegramChannelId, { text: response });
-
-        } catch (err) {
-            m.reply("AI Error. Please check your Gemini API Key in .env file.");
-        }
+    } catch (e) {
+        console.log(e);
+        reply("AI Error: Check if GEMINI_API_KEY is added in .env file.");
     }
-}
+})
 
